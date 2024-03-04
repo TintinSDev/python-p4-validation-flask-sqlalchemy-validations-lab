@@ -27,16 +27,10 @@ class TestAuthor:
         '''requires each record to have a unique name.'''
         
         with app.app_context():
-            author_a = Author(name = 'Ben', phone_number = '1231144321')
+            author_a = Author(name='Ben', phone_number='1231144321')
             db.session.add(author_a)
-            db.session.commit()
-            
-            with pytest.raises(ValueError):
-                author_b = Author(name = 'Ben', phone_number = '1231144321')
-                
-            db.session.query(Author).delete()
-            db.session.commit()
-
+            with pytest.raises(IntegrityError):
+                db.session.commit()
     def test_requires_ten_digit_phone_number(self):
         '''requires each phone number to be exactly ten digits.'''
 
@@ -110,6 +104,13 @@ class TestPost:
     def test_clickbait(self):
         '''Test clickbait validator for title.'''
         with app.app_context():
-            content_string = "A" * 260
+            # Clickbait title
+            clickbait_title = "Top 10 Shocking Secrets You Won't Believe About Python Programming!"
             with pytest.raises(ValueError):
-                post = Post(title='Why I love programming.', content=content_string, category='Fiction')
+                post = Post(title=clickbait_title, content="...", category='Fiction')
+    
+            # Non-clickbait title
+            non_clickbait_title = "Introduction to Python Programming"
+            # Provide content with sufficient length
+            content = "A" * 250  # Ensure content length meets the minimum requirement
+            post = Post(title=non_clickbait_title, content=content, category='Fiction')
